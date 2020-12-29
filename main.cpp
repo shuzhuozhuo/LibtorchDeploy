@@ -5,9 +5,11 @@
 #include "torch/script.h"
 
 #include "./include/load.h"
+#include <sys/time.h>
+#include <ctime> 
 
 int main(int argc, const char* argv[]){
-
+    at::init_num_threads();
     std::cout << "Hello World" << std::endl;
     cv::Size image_size(224, 224);
     printf("%d\n", image_size.height);
@@ -21,7 +23,18 @@ int main(int argc, const char* argv[]){
 
     std::vector<torch::jit::IValue> inputs;
     inputs.push_back(mytensor);
-    at::Tensor output = model.forward(inputs).toTensor();
+    clock_t start;
+    clock_t end ;
+    at::Tensor output;
+    c10::IValue value;
+    for(int i = 0; i < 10; i++){
+        start =  clock();
+        value = model.forward(inputs);
+        end = clock();
+        std::cout << (double)(end - start) / CLOCKS_PER_SEC << "秒" << std::endl;
+        output = value.toTensor();
+    }
+         
     at::Tensor max_index = torch::argmax(output);
     at::Tensor max_value = torch::max(output);
     // std::cout << "output is : " << output << std::endl;
